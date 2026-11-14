@@ -6,7 +6,7 @@
 | 1 | `candidates(keymaps, prefix)` 純粋関数 + テスト | 済 |
 | 2 | float window で候補を表示する | 済 |
 | 3 | getcharstr で1キーずつ読んで、prefix を伸ばすループ | 済 |
-| 4 | 決まったキーを feedkeys で実行する（自分のマッピングで再帰しない） | |
+| 4 | 決まったキーを feedkeys で実行する（自分のマッピングで再帰しない） | 済 |
 | 5 | 仕上げ: 表示の遅延、v:count / v:register、細かい挙動 | |
 
 各 step の最後に、`nvim --clean -l tests/candidates_test.lua` が通ることを確認する。
