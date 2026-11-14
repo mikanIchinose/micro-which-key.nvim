@@ -92,7 +92,10 @@ function M.candidates(keymaps, prefix)
   return result
 end
 
-function M.getKeymaps(mode)
+function M.get_keymaps(mode)
+  local all_keymaps = vim.api.nvim_get_keymap(mode)
+  vim.list_extend(all_keymaps, vim.api.nvim_buf_get_keymap(0, mode))
+
   local keymaps = {}
   for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
     table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
@@ -100,13 +103,14 @@ function M.getKeymaps(mode)
   for _, m in ipairs(vim.api.nvim_buf_get_keymap(0, mode)) do
     table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
   end
+
   return keymaps
 end
 
 -- which-keyの表示をループする
 function M.start(prefix)
   -- normal modeのキーマップ全部詰め込む
-  local keymaps = M.getKeymaps('n')
+  local keymaps = M.get_keymaps('n')
 
   local keys = {} -- ユーザーが入力したキー
   while true do
