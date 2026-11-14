@@ -92,5 +92,63 @@ function M.candidates(keymaps, prefix)
   return result
 end
 
+function M.getKeymaps(mode)
+  local keymaps = {}
+  for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
+    table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
+  end
+  for _, m in ipairs(vim.api.nvim_buf_get_keymap(0, mode)) do
+    table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
+  end
+  return keymaps
+end
+
+-- which-keyの表示をループする
+function M.start(prefix)
+  -- normal modeのキーマップ全部詰め込む
+  local keymaps = M.getKeymaps('n')
+
+  local keys = {} -- ユーザーが入力したキー
+  while true do
+    local candidates = M.candidates(keymaps, prefix .. table.concat(keys))
+    M.show(candidates)
+    vim.cmd.redraw()
+
+    -- 次の入力を待つ
+    local ok, ch = pcall(vim.fn.getcharstr)
+    if not ok then
+      M.hide()
+      return
+    end
+
+    local key = vim.fn.keytrans(ch)
+    if key == '<Esc>' then
+      -- <Esc> で脱出
+      M.hide()
+      return
+    elseif key == '<BS>' then
+      if #keys == 0 then
+        M.hide()
+        return
+      end
+      -- 前の入力に戻す
+      table.remove(keys)
+    else
+      local nextItem = vim.iter(candidates):find(function(it) return it.key == key end)
+      -- 候補にないものを入力したら終了
+      if not nextItem then
+        M.hide()
+        return
+      elseif nextItem.group then
+        table.insert(keys, nextItem.key)
+      else
+        -- コマンドが入力完了しているので終了
+        M.hide()
+        return
+      end
+    end
+  end
+end
+
 return M
 
