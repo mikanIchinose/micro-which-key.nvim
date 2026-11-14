@@ -85,7 +85,8 @@ function M.candidates(keymaps, prefix)
   local result = {}
   for k, c in pairs(by_key) do
     local desc = c.count > 0 and ('+%d'):format(c.count) or c.desc
-    table.insert(result, {key=k,desc=desc})
+    local group = c.count > 0
+    table.insert(result, {key=k,desc=desc,group=group})
   end
   table.sort(result, function(a, b) return a.key < b.key end)
   return result
