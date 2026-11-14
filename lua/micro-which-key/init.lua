@@ -11,10 +11,8 @@ function M.hide()
   win = nil
 end
 
-function M.show(items)
-  M.hide()
-  if #items == 0 then return end
-
+-- itemsをwidth桁に収まるように複数行に並べた列の配列を返す
+function M.layout(items, width)
   -- 各項目を表示用の文字にして、一番広い幅を覚える
   local cells = {}
   local cell_w = 0
@@ -26,7 +24,6 @@ function M.show(items)
   cell_w = cell_w + 2
 
   -- 列の数と行の数
-  local width = vim.o.columns - 2 -- 横いっぱい
   local ncols = math.max(1, math.floor(width / cell_w))
   local nrows = math.ceil(#cells / ncols)
 
@@ -44,7 +41,14 @@ function M.show(items)
     end
     table.insert(lines, table.concat(row))
   end
+  return lines
+end
 
+function M.show(items)
+  M.hide()
+  if #items == 0 then return end
+
+  local lines = M.layout(items, vim.o.columns - 2)
   local height = #lines
 
   -- バッファを作る
