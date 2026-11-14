@@ -142,8 +142,11 @@ function M.start(prefix)
       elseif nextItem.group then
         table.insert(keys, nextItem.key)
       else
-        -- コマンドが入力完了しているので終了
+        -- コマンドが入力完了しているのでキーコードを送って終了
         M.hide()
+        local lhs = prefix .. table.concat(keys) .. nextItem.key
+        local keymap = vim.api.nvim_replace_termcodes(lhs, true, true, true)
+        vim.api.nvim_feedkeys(keymap, 'mit', false)
         return
       end
     end
