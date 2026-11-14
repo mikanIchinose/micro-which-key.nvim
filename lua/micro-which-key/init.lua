@@ -135,14 +135,18 @@ function M.start(prefix)
       table.remove(keys)
     else
       local nextItem = vim.iter(candidates):find(function(it) return it.key == key end)
-      -- 候補にないものを入力したら終了
       if not nextItem then
+        -- 候補にないものを入力
         M.hide()
+        local lhs = prefix .. table.concat(keys) .. key
+        local keymap = vim.api.nvim_replace_termcodes(lhs, true, true, true)
+        vim.api.nvim_feedkeys(keymap, 'nit', false)
         return
       elseif nextItem.group then
+        -- 次の候補
         table.insert(keys, nextItem.key)
       else
-        -- コマンドが入力完了しているのでキーコードを送って終了
+        -- 入力完了
         M.hide()
         local lhs = prefix .. table.concat(keys) .. nextItem.key
         local keymap = vim.api.nvim_replace_termcodes(lhs, true, true, true)
