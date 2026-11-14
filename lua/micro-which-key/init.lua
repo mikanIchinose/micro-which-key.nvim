@@ -97,11 +97,10 @@ function M.get_keymaps(mode)
   vim.list_extend(all_keymaps, vim.api.nvim_buf_get_keymap(0, mode))
 
   local keymaps = {}
-  for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
-    table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
-  end
-  for _, m in ipairs(vim.api.nvim_buf_get_keymap(0, mode)) do
-    table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
+  for _, m in ipairs(all_keymaps) do
+    if not (m.desc == 'micro-which-key') then
+      table.insert(keymaps, { lhs = vim.fn.keytrans(m.lhsraw), desc = m.desc, rhs = m.rhs })
+    end
   end
 
   return keymaps
