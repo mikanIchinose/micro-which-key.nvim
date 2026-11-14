@@ -1,5 +1,68 @@
 local M = {}
 
+local win
+
+function M.hide()
+  -- windowがまだ開いていれば閉じる
+  -- 外部要因で閉じられている可能性があるのでvim.api.nvim_win_is_validでチェックする
+  if win and vim.api.nvim_win_is_valid(win) then
+    vim.api.nvim_win_close(win, true)
+  end
+  win = nil
+end
+
+function M.show(items)
+  M.hide()
+  if #items == 0 then return end
+
+  -- 各項目を表示用の文字にして、一番広い幅を覚える
+  local cells = {}
+  local cell_w = 0
+  for _, item in ipairs(items) do
+    local s = (' %s %s'):format(item.key, item.desc)
+    table.insert(cells, s)
+    cell_w = math.max(cell_w, vim.fn.strdisplaywidth(s))
+  end
+  cell_w = cell_w + 2
+
+  -- 列の数と行の数
+  local width = vim.o.columns - 2 -- 横いっぱい
+  local ncols = math.max(1, math.floor(width / cell_w))
+  local nrows = math.ceil(#cells / ncols)
+
+  local lines = {}
+  for r = 1, nrows do
+    local row = {}
+    for c = 1, ncols do
+      -- r行、c列目の文字
+      local s = cells[(c - 1) * nrows + r]
+      if s then
+        local how_many_spaces = cell_w - vim.fn.strdisplaywidth(s)
+        s = s .. string.rep(' ', how_many_spaces)
+        table.insert(row, s)
+      end
+    end
+    table.insert(lines, table.concat(row))
+  end
+
+  local height = #lines
+
+  -- バッファを作る
+  local buf = vim.api.nvim_create_buf(false, true)
+  -- バッファに文字を書く
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  -- ウィンドウを開く
+  win = vim.api.nvim_open_win(buf, false, {
+    relative = 'editor',
+    row = vim.o.lines - height - 2,
+    col = 0,
+    width = vim.o.columns,
+    height = height,
+    style = 'minimal',
+    border = 'rounded',
+  })
+end
+
 function M.candidates(keymaps, prefix)
   local by_key = {}
   for _, m in ipairs(keymaps) do
