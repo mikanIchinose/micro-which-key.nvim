@@ -106,6 +106,37 @@ function M.get_keymaps(mode)
   return keymaps
 end
 
+function M.attach(buf)
+  local keymaps = M.get_keymaps('n')
+  local mapped = {}
+  for _, k in ipairs(keymaps) do
+    mapped[k.lhs] = true
+  end
+  for _, item in ipairs(M.candidates(keymaps, '')) do
+    local key = item.key
+    local ok = item.group
+    if key == '<Plug>' then ok = false end
+    if key:match('^[a-zA-Z]$') and not key:match('^[gzZ]$') then ok = false end
+    if mapped[key] then ok = false end
+    if ok then
+      vim.keymap.set('n', key, function() M.start(key) end, { nowait = true, desc = 'micro-which-key', buffer = buf })
+    end
+  end
+end
+
+function M.setup()
+  M.attach(0)
+  vim.api.nvim_create_autocmd({ 'BufEnter', 'LspAttach' }, {
+    callback = function(args)
+      vim.schedule(function()
+        if vim.api.nvim_buf_is_valid(args.buf) then
+          M.attach(args.buf)
+        end
+      end)
+    end
+  })
+end
+
 -- which-keyの表示をループする
 function M.start(prefix)
   -- normal modeのキーマップ全部詰め込む
